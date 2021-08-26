@@ -54,9 +54,10 @@ class MyARIMA:
     def forward(self, in_: "ndarray") -> "ndarray":
         """Predict biogas time series."""
         out = np.zeros((in_.shape[0], 2))
-        for time in range(in_.shape[0]):
+        from tqdm import tqdm
+        for time in tqdm(range(in_.shape[0])):
             model_fit = ARIMA(self.history, order=self.order).fit()
-            out[time] = [time, model_fit.forecast()]
+            out[time] = [time + 1, model_fit.forecast()]
             self.history = np.append(self.history, in_[time])
         return out
 
@@ -65,36 +66,46 @@ def _prepare_data(file_: str) -> Tuple["ndarray", "ndarray", "ndarray", "ndarray
     """Load preprocessed data from pickle file."""
     data = pd.read_pickle(file_)
     train_exo = data[[
-        "Rohs FB1", "Rohs gesamt", "TS Rohschlamm", "Rohs TS Fracht", "Faulschlamm Menge FB1", "Faulschlamm Menge",
-        "Temperatur FB1", "Faulschlamm pH Wert FB1", "Faulbehaelter Faulzeit", "TS Faulschlamm",
-        "Faulschlamm TS Fracht", "GV Faulschlamm", "Kofermentation Bioabfaelle", "month", "weekday", "tourism",
-        "ambient_temp"
-    ]].to_numpy(dtype=float)
-    train_meth = data["Faulgas Menge FB1"].to_numpy(dtype=float)
-    test_exo = data[[
         "Rohs FB2", "Rohs gesamt", "TS Rohschlamm", "Rohs TS Fracht", "Faulschlamm Menge FB2", "Faulschlamm Menge",
         "Temperatur FB2", "Faulschlamm pH Wert FB2", "Faulbehaelter Faulzeit", "TS Faulschlamm",
-        "Faulschlamm TS Fracht", "GV Faulschlamm", "Kofermentation Bioabfaelle", "month", "weekday", "tourism",
-        "ambient_temp"
+        "Faulschlamm TS Fracht", "GV Faulschlamm", "Kofermentation Bioabfaelle", "month", "weekday"
     ]].to_numpy(dtype=float)
-    test_meth = data["Faulgas Menge FB2"].to_numpy(dtype=float)
+    train_meth = data["Faulgas Menge FB2"].to_numpy(dtype=float)
+    test_exo = data[[
+        "Rohs FB1", "Rohs gesamt", "TS Rohschlamm", "Rohs TS Fracht", "Faulschlamm Menge FB1", "Faulschlamm Menge",
+        "Temperatur FB1", "Faulschlamm pH Wert FB1", "Faulbehaelter Faulzeit", "TS Faulschlamm",
+        "Faulschlamm TS Fracht", "GV Faulschlamm", "Kofermentation Bioabfaelle", "month", "weekday"
+    ]].to_numpy(dtype=float)
+    test_meth = data["Faulgas Menge FB1"].to_numpy(dtype=float)
     return train_exo, train_meth, test_exo, test_meth
 
 
 def main(config: dict) -> None:
     """Evaluate all benchmark models."""
     train_exo, train_meth, test_exo, test_meth = _prepare_data(config["train_dir"] + "data.pkl")
+    cutoff = 0
+    test_exo = test_exo[cutoff:]
+    test_meth = test_meth[cutoff:]
+
     np.savetxt(
         "./assets/results/true.csv", np.stack((list(range(len(test_meth))), test_meth), axis=1), fmt="%f",
         delimiter=",", header="time,pred", comments="")
 
-    # knn = KNeighbors(2, train_exo, train_meth)
-    # out_knn = knn.forward(test_exo)
-    # np.savetxt("./assets/results/knn.csv", out_knn, fmt="%f", delimiter=",", header="time,pred", comments="")
+    knn = KNeighbors(8, train_exo, train_meth)
+    out_knn = knn.forward(test_exo)
+    np.savetxt("./assets/results/knn.csv", out_knn, fmt="%f", delimiter=",", header="time,pred", comments="")
 
-    # arima = MyARIMA(7, 2, 2, np.diff(train_meth))
-    # out_arima = np.cumsum(np.insert(arima.forward(np.diff(test_meth)), 0, test_meth[0]))
-    # np.savetxt("./assets/results/arima.csv", out_arima, fmt="%f", delimiter=",", header="time,pred", comments="")
+    # p: number of lag observations
+    # d: number of times that the raw observations are differenced
+    # q: size of the moving average window
+    arima = MyARIMA(8, 1, 0, np.diff(train_meth))
+    out_arima = arima.forward(np.diff(test_meth))
+    out_arima = np.append(np.array([[0, test_meth[0]]]), out_arima, axis=0)
+    out_arima[:, -1] = np.cumsum(out_arima[:, -1])
+    # Without differencing.
+    # arima = MyARIMA(3, 1, 1, train_meth)
+    # out_arima = arima.forward(test_meth)
+    np.savetxt("./assets/results/arima.csv", out_arima, fmt="%f", delimiter=",", header="time,pred", comments="")
 
     preds = evaluate_ann_on(train_exo, train_meth, test_exo)
     np.savetxt("./assets/results/ann.csv", preds, fmt="%f", delimiter=",", header="time,pred", comments="")

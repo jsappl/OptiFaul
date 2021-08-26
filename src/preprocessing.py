@@ -25,7 +25,7 @@ def _load_raw_data_from(dir_: str) -> Generator["DataFrame", None, None]:
             "Rohs. gesamt [m³] ",
             "TS Rohschlamm [g/l] ",  # NaNs
             "Rohs. TS-Fracht [kg/d] ",  # NaNs
-            # "Rohs. oTS-Fracht [kg/d] ",  # NaNs, correlated
+            "Rohs. oTS-Fracht [kg/d] ",  # NaNs, correlated
             "Faulschlamm1 Menge [m³] ",
             "Faulschlamm2 Menge [m³] ",
             "Faulschlamm Menge [m³] ",
@@ -36,9 +36,9 @@ def _load_raw_data_from(dir_: str) -> Generator["DataFrame", None, None]:
             "Faulbehälter Faulzeit [d] ",
             "TS Faulschlamm [g/l] ",  # NaNs
             "Faulschlamm TS-Fracht [kg/d] ",  # NaNs
-            # "Faulbehälter Feststoffbelastung [kg/(m³.d)] ",  # NaNs, correlated
+            "Faulbehälter Feststoffbelastung [kg/(m³.d)] ",  # NaNs, correlated
             "GV Faulschlamm [%] ",  # NaNs
-            # "Faulschlamm oTS-Fracht [kg/d] ",  # NaNs, correlated
+            "Faulschlamm oTS-Fracht [kg/d] ",  # NaNs, correlated
             "Kofermentation Bioabfälle [m³] ",
             # "Kofermentation CSB-Fracht [kg] ",  # only NaNs
             ],
@@ -79,19 +79,21 @@ def _treat_outliers(data: "DataFrame", n_quantiles: int = 4) -> "DataFrame":
 def _prepare_pt_forecasting(data: "DataFrame", dir_: str) -> "DataFrame":
     """Add features, some needed by PyTorch Forecasting library."""
     # Add relative time index and group ids.
-    start = data["Datum"].min()
-    data["time_idx"] = (data["Datum"] - start).dt.days
+    start = data["date"].min()
+    data["time_idx"] = (data["date"] - start).dt.days
     data["group_ids"] = 0
 
     # Add additional time features.
-    data["month"] = data["Datum"].dt.month.astype(str).astype("category")
-    data["weekday"] = data["Datum"].dt.weekday.astype(str).astype("category")
+    data["month"] = data["date"].dt.month.astype(str).astype("category")
+    data["weekday"] = data["date"].dt.weekday.astype(str).astype("category")
 
     # Add public holidays, tourism, and ambient temperature.
-    data["holidays"] = get_time_series(dir_ + "fcal_Tirol.csv", data["Datum"])["Bezeichnung"]
-    data["tourism"] = get_time_series(dir_ + "tourism_strass.csv", data["Datum"])["Uebernachtungen"]
+    data["holidays"] = get_time_series(dir_ + "holidays_tirol.csv", data["date"])["name"]
+    # https://www.statistik.at/web_de/statistiken/wirtschaft/tourismus/beherbergung/ankuenfte_naechtigungen/index.html
+    data["tourism"] = get_time_series(dir_ + "tourism_strass.csv", data["date"])["overnight_stay"]
     data["tourism"] = data["tourism"].fillna(method="ffill")
-    data["ambient_temp"] = get_time_series(dir_ + "ambient_temp.csv", data["Datum"])["Temperatur"]
+    # https://www.wunderground.com/weather/at/strass-im-zillertal
+    # data["ambient_temp"] = get_time_series(dir_ + "ambient_temp.csv", data["date"])["Temperatur"]
     return data
 
 
@@ -101,13 +103,13 @@ def main(config: dict) -> None:
     digestion, biogas = _load_raw_data_from(config["root_dir"])
     data = digestion.join(biogas)
     data.columns = new_headers()
-    dates = date_object_from(data.pop("Datum"))
+    dates = date_object_from(data.pop("date"))
 
     # Treat NaNs and outliers.
     data = _treat_missing_values(data)
-    data = _treat_outliers(data, config["n_quantiles"])
+    # data = _treat_outliers(data, config["n_quantiles"])
 
     # Add library-specific features and save to disk.
-    data.insert(0, "Datum", dates)  # CAVE: outliers possibly removed
+    data.insert(0, "date", dates)  # CAVE: outliers possibly removed
     data = _prepare_pt_forecasting(data, config["root_dir"])
     data.to_pickle("./assets/data/preprocessed/data.pkl")
