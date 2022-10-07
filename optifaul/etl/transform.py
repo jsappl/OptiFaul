@@ -1,6 +1,5 @@
 """Transform part of ETL."""
 
-import datetime as dt
 from typing import TYPE_CHECKING, Dict
 
 import pandas as pd
@@ -154,6 +153,28 @@ def interpolate_nans(df: "DataFrame") -> "DataFrame":
     ]
     df.loc[:, to_interpolate] = df.loc[:, to_interpolate].interpolate(
         method="linear", axis="columns", limit_direction="both")
+
     df.loc[:, "public_holiday"].fillna("---", inplace=True)
+    df.loc[:, "overnight_stay"] = df.overnight_stay.fillna(method="ffill").fillna(method="bfill")
+
+    return df
+
+
+def enrich(df: "DataFrame") -> "DataFrame":
+    """Add additional features for forecasting.
+
+    Args:
+        df: Data frame containing all data.
+
+    Returns an enriched data frame.
+    """
+    # relative time index and group ids
+    start = df["date"].min()
+    df["time_idx"] = (df["date"] - start).dt.days
+    df["group_ids"] = 0
+
+    # additional time features
+    df["month"] = df["date"].dt.month.astype(str).astype("category")
+    df["weekday"] = df["date"].dt.weekday.astype(str).astype("category")
 
     return df

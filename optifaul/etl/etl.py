@@ -29,6 +29,7 @@ class ETL:
         self.df = T.merge(self.dfs)
         self.df = T.sort_by_date(self.df)
         self.df = T.interpolate_nans(self.df)
+        self.df = T.enrich(self.df)
 
     def _load(self) -> None:
         """Move transformed data from the staging area to a target location."""
