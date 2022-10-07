@@ -1,40 +1,20 @@
 """Train and test temporal fusion transformers with anaerobic digester data."""
 
-import matplotlib
+from typing import TYPE_CHECKING
 
-from src import benchmark, preprocessing, test, train
+import hydra
+from hydra.utils import instantiate
 
-# Required for plotting on server with no display attached.
-matplotlib.rcParams.update({"figure.max_open_warning": 0})
-matplotlib.use("Agg")
+if TYPE_CHECKING:
+    from omegaconf import DictConfig
 
 
-def main(config: dict) -> None:
-    """TFT model training and testing pipeline."""
-    preprocessing.main(config)
-    best_model_path = train.main(config)
-    test.main(config, best_model_path)
-    benchmark.main(config)
+@hydra.main(config_path="config", config_name="config", version_base="1.2")
+def main(cfg: "DictConfig") -> None:
+    if cfg.run_etl:
+        etl = instantiate(cfg.etl)
+        etl.execute()
 
 
 if __name__ == "__main__":
-    cfg = {
-        "root_dir": "./assets/data/raw/",
-        "n_quantiles": 4,
-        "train_dir": "./assets/data/preprocessed/",
-        "split": 0.5,
-        "max_encoder_length": 14,  # steps in history
-        "max_prediction_length": 7,  # forecast steps
-        "batch_size": 512,
-        "log_dir": "./assets/runs/",
-        "max_epochs": 2048,
-        "hidden_size": 8,  # can range from 8 to 512
-        "lstm_layers": 2,
-        "dropout": 0.0,
-        "attention_head_size": 4,
-        "hidden_continuous_size": 8,
-        "lr": 0.001,
-        "weight_decay": 0.05,
-    }
-
-    main(cfg)
+    main()

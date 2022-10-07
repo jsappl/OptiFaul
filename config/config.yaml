@@ -1,0 +1,11 @@
+defaults:
+  - etl: aiz_ad_data
+  - _self_ # this config
+
+run_etl: False
+hydra:
+  run:
+    dir: ./data/runs/${now:%Y-%m-%d}/${now:%H-%M}
+  sweep:
+    dir: ./data/runs/${now:%Y-%m-%d}/
+    subdir: ${now:%H-%M}

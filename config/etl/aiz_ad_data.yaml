@@ -1,0 +1,2 @@
+_target_: optifaul.etl.ETL
+data_path: ./data/export/
