@@ -1,0 +1,4 @@
+_target_: optifaul.dataset.init_data_sets
+max_encoder_length: 7
+max_prediction_length: 7
+databundle: latest

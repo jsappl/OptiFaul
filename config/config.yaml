@@ -1,7 +1,9 @@
 defaults:
   - etl: aiz_ad_data
+  - dataset: digestion
   - _self_ # this config
 
+seed: 69
 run_etl: False
 hydra:
   run:
@@ -9,3 +11,5 @@ hydra:
   sweep:
     dir: ./data/runs/${now:%Y-%m-%d}/
     subdir: ${now:%H-%M}
+batch_size: 32
+num_workers: 20
