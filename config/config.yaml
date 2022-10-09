@@ -4,6 +4,7 @@ defaults:
   - loss: quantile
   - logging: tensorboard
   - model: tft
+  - trainer: pl_trainer
   - _self_ # this config
 
 seed: 69
@@ -16,3 +17,4 @@ hydra:
     subdir: ${now:%H-%M}
 batch_size: 32
 num_workers: 20
+epochs: 128
