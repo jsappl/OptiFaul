@@ -34,6 +34,14 @@ def main(cfg: "DictConfig") -> None:
         loss=loss,
     )
 
+    for name in cfg.benchmarks:
+        benchmark = instantiate(
+            eval(f"cfg.benchmarks.{name}"),
+            dataset=train_data,
+            target=train_data.target,
+            loss=loss,
+        )
+
     logger = instantiate(cfg.logging)
 
 if __name__ == "__main__":
