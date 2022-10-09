@@ -1,0 +1,7 @@
+_target_: pytorch_forecasting.models.mlp.DecoderMLP.from_dataset
+hidden_size: 23
+n_hidden_layers: 2
+dropout: 0.0
+norm: False
+output_size: 5
+optimizer: adam

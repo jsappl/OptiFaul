@@ -4,8 +4,6 @@ defaults:
   - loss: quantile
   - logging: tensorboard
   - model: tft
-  - benchmarks:
-      - mlp
   - _self_ # this config
 
 seed: 69

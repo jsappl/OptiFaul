@@ -7,6 +7,8 @@ import hydra
 import pytorch_lightning as pl
 from hydra.utils import instantiate
 
+from optifaul.utils import namestr_from
+
 if TYPE_CHECKING:
     from omegaconf import DictConfig
 
@@ -33,16 +35,8 @@ def main(cfg: "DictConfig") -> None:
         dataset=train_data,
         loss=loss,
     )
+    logger = instantiate(cfg.logging, version=namestr_from(model))
 
-    for name in cfg.benchmarks:
-        benchmark = instantiate(
-            eval(f"cfg.benchmarks.{name}"),
-            dataset=train_data,
-            target=train_data.target,
-            loss=loss,
-        )
-
-    logger = instantiate(cfg.logging)
 
 if __name__ == "__main__":
     main()
