@@ -1,7 +1,7 @@
 """A collection of helper functions."""
 
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Type
 
 import pandas as pd
 
@@ -51,3 +51,8 @@ def get_time_series(file_: str, dates: "Series") -> "Series":
     if isinstance(data.iloc[0, 1], str):
         return pd.merge(dates, data, how="left", on="date").fillna("-").astype(str).astype("category")
     return pd.merge(dates, data, how="left", on="date")
+
+
+def namestr_from(_class: "Type") -> str:
+    """Extract name string from class instance."""
+    return _class.__class__.__name__
