@@ -2,6 +2,7 @@ defaults:
   - etl: aiz_ad_data
   - dataset: digestion
   - loss: quantile
+  - logging: tensorboard
   - _self_ # this config
 
 seed: 69

@@ -28,5 +28,7 @@ def main(cfg: "DictConfig") -> None:
 
     loss = instantiate(cfg.loss)
 
+    logger = instantiate(cfg.logging)
+
 if __name__ == "__main__":
     main()
