@@ -26,5 +26,7 @@ def main(cfg: "DictConfig") -> None:
     val_loader = val_data.to_dataloader(train=False, batch_size=cfg.batch_size, num_workers=cfg.num_workers)
     test_loader = test_data.to_dataloader(train=False, batch_size=cfg.batch_size, num_workers=cfg.num_workers)
 
+    loss = instantiate(cfg.loss)
+
 if __name__ == "__main__":
     main()
