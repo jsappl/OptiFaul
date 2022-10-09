@@ -28,6 +28,12 @@ def main(cfg: "DictConfig") -> None:
 
     loss = instantiate(cfg.loss)
 
+    model = instantiate(
+        cfg.model,
+        dataset=train_data,
+        loss=loss,
+    )
+
     logger = instantiate(cfg.logging)
 
 if __name__ == "__main__":

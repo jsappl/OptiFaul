@@ -3,6 +3,7 @@ defaults:
   - dataset: digestion
   - loss: quantile
   - logging: tensorboard
+  - model: tft
   - _self_ # this config
 
 seed: 69

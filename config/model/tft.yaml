@@ -1,0 +1,9 @@
+_target_: pytorch_forecasting.models.temporal_fusion_transformer.TemporalFusionTransformer.from_dataset
+hidden_size: 8
+lstm_layers: 2
+dropout: 0.0
+output_size: 5
+attention_head_size: 4
+reduce_on_plateau_patience: 256
+hidden_continuous_size: 4
+optimizer: adam
