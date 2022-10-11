@@ -33,11 +33,17 @@ def main(cfg: "DictConfig") -> None:
         dataset=train_data,
         loss=loss,
     )
+
     logger = instantiate(cfg.logging, version=namestr_from(model))
+
+    callbacks = []
+    for callback in cfg.callbacks:
+        callbacks.append(instantiate(eval(f"cfg.callbacks.{callback}")))
+
     trainer = instantiate(
         cfg.trainer,
         logger=logger,
-        callbacks=[],
+        callbacks=callbacks,
     )
     trainer.fit(model, train_loader, val_loader)
 

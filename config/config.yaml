@@ -4,6 +4,8 @@ defaults:
   - loss: quantile
   - logging: tensorboard
   - model: tft
+  - callbacks:
+      - early_stopping
   - trainer: pl_trainer
   - _self_ # this config
 
