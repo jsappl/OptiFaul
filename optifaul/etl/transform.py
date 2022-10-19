@@ -140,6 +140,39 @@ def sort_by_date(df: "DataFrame") -> "DataFrame":
     return df
 
 
+def treat_outliers(df: "DataFrame", method: str, n_quantiles: int = 4) -> "DataFrame":
+    """Find and edit outliers based on quantiles.
+
+    Args:
+        df: Data frame containing all data.
+        method: Either cap or remove the outliers.
+        n_quantiles: Number of quantiles for outlier computation.
+
+    Returns:
+        A data frame with outliers removed.
+
+    Raises:
+        NotImplementedError: If the outlier treatment method is not correct.
+    """
+    sdf = df.select_dtypes(include="number")
+
+    q_low = sdf.quantile(q=1 / n_quantiles, numeric_only=True)
+    q_high = sdf.quantile((n_quantiles - 1) / n_quantiles, numeric_only=True)
+    iqr = q_high - q_low  # interquartile range
+
+    if method == "cap":
+        sdf = sdf.where(cond=sdf > q_low - 1.5 * iqr, other=q_low, axis=0)
+        sdf = sdf.where(cond=sdf < q_high + 1.5 * iqr, other=q_high, axis=0)
+        df.loc[:, sdf.columns] = sdf
+    elif method == "remove":
+        to_keep = sdf.index[(((sdf > (q_low - 1.5 * iqr)) & (sdf < (q_high + 1.5 * iqr)))).all(axis=1)]
+        df = df.iloc[to_keep]
+    else:
+        raise NotImplementedError("Choose either 'cap' or 'remove' as an option")
+
+    return df
+
+
 def interpolate_nans(df: "DataFrame") -> "DataFrame":
     """Interpolate some columns in the data frame.
 

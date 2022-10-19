@@ -28,6 +28,7 @@ class ETL:
         self.dfs = T.string_to_datetime(self.dfs)
         self.df = T.merge(self.dfs)
         self.df = T.sort_by_date(self.df)
+        self.df = T.treat_outliers(self.df, method="cap")
         self.df = T.interpolate_nans(self.df)
         self.df = T.enrich(self.df)
 
