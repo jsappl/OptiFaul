@@ -7,6 +7,7 @@ defaults:
   - callbacks:
       - early_stopping
       - lr_monitor
+      - checkpoint
   - trainer: pl_trainer
   - _self_ # this config
 
