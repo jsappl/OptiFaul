@@ -6,6 +6,7 @@ defaults:
   - model: tft
   - callbacks:
       - early_stopping
+      - lr_monitor
   - trainer: pl_trainer
   - _self_ # this config
 
