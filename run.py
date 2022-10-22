@@ -1,11 +1,14 @@
 """Train and test temporal fusion transformers with anaerobic digester data."""
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import hydra
 import pytorch_lightning
+import torch
 from hydra.utils import instantiate
 
+from optifaul.test import compute_metrics, goodness_of_fit
 from optifaul.utils import namestr_from
 
 if TYPE_CHECKING:
@@ -46,6 +49,11 @@ def main(cfg: "DictConfig") -> None:
         callbacks=callbacks,
     )
     trainer.fit(model, train_loader, val_loader)
+
+    model.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
+    save_dir = Path("./data/csv/")
+    compute_metrics(model, test_loader, save_dir)
+    goodness_of_fit(model, test_loader, save_dir)
 
 
 if __name__ == "__main__":
