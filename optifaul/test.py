@@ -6,7 +6,7 @@ import numpy as np
 import pytorch_forecasting
 import torch
 
-from optifaul.utils import namestr_from
+from optifaul.utils import namestr_from, r_squared
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -36,6 +36,27 @@ def compute_metrics(model: "Module", loader: "DataLoader", save_dir: "Path") -> 
 
     file.write("\n")
     file.close()
+
+
+def goodness_of_fit(model: "Module", loader: "DataLoader", save_dir: "Path") -> None:
+    """Save measurements and forecast to disk.
+
+    Args:
+        model: The model to be evaluated.
+        loader: Provides an iterator over the data set.
+        save_dir: Where to save the metric results.
+    """
+    targets = torch.cat([y[0] for _, y in iter(loader)]).flatten().numpy()
+    predictions = model.predict(loader).flatten().numpy()
+
+    print(f"r2 {namestr_from(model)}: {r_squared(targets, predictions)}")
+    np.savetxt(
+        save_dir / f"goodness_of_fit_{namestr_from(model)}.csv",
+        np.stack((targets, predictions), axis=1),
+        fmt="%f",
+        delimiter=",",
+        header="targets,predictions",
+        comments="",
     )
 
 
