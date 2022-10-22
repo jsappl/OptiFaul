@@ -21,33 +21,33 @@ def keep_translate_cols(dfs: Dict[str, "DataFrame"]) -> Dict[str, "DataFrame"]:
         "digestion":
             {
                 "Datum": "date",
-                "Rohs. FB-1 [m³] ": "D1 raw sludge",
-                "Rohs. FB-2 [m³] ": "D2 raw sludge",
-                "Rohs. gesamt [m³] ": "raw sludge total",
-                "TS Rohschlamm [g/l] ": "dry matter raw sludge",
-                "Rohs. TS-Fracht [kg/d] ": "raw sludge dry matter load",
-                "Rohs. oTS-Fracht [kg/d] ": "raw sludge organic dry matter load",
-                "Faulschlamm1 Menge [m³] ": "D1 sludge quantity",
-                "Faulschlamm2 Menge [m³] ": "D2 sludge quantity",
-                "Faulschlamm Menge [m³] ": "sludge quantity",
-                "Faulbehälter1 Temperatur [°C] ": "D1 temperature",
-                "Faulbehälter2 Temperatur [°C] ": "D2 temperature",
-                "Faulschlamm1 pH-Wert [-] ": "D1 pH",
-                "Faulschlamm2 pH-Wert [-] ": "D2 pH",
-                "Faulbehälter Faulzeit [d] ": "retention time",
-                "TS Faulschlamm [g/l] ": "dry matter sludge",
-                "Faulschlamm TS-Fracht [kg/d] ": "sludge dry matter load",
-                "Faulbehälter Feststoffbelastung [kg/(m³.d)] ": "solids load",
-                "GV Faulschlamm [%] ": "glow loss",
-                "Faulschlamm oTS-Fracht [kg/d] ": "sludge organic dry matter load",
-                "Kofermentation Bioabfälle [m³] ": "cofermentation bio waste",
-                # "Kofermentation CSB-Fracht [kg] ": "cofermentation cod load",  # pure NaNs
+                "Rohs. FB-1 [m³] ": "Raw sludge D1",
+                "Rohs. FB-2 [m³] ": "Raw sludge D2",
+                # "Rohs. gesamt [m³] ": "Raw sludge total",
+                "TS Rohschlamm [g/l] ": "Raw sludge dry matter",
+                "Rohs. TS-Fracht [kg/d] ": "Raw sludge dry matter load",
+                # "Rohs. oTS-Fracht [kg/d] ": "Raw sludge organic dry matter load",
+                "Faulschlamm1 Menge [m³] ": "Sludge D1",
+                "Faulschlamm2 Menge [m³] ": "Sludge D2",
+                "Faulschlamm Menge [m³] ": "Sludge total",
+                "Faulbehälter1 Temperatur [°C] ": "Temperature D1",
+                "Faulbehälter2 Temperatur [°C] ": "Temperature D2",
+                "Faulschlamm1 pH-Wert [-] ": "pH value D1",
+                "Faulschlamm2 pH-Wert [-] ": "pH value D2",
+                "Faulbehälter Faulzeit [d] ": "Hydraulic retention time",
+                "TS Faulschlamm [g/l] ": "Sludge dry matter",
+                "Faulschlamm TS-Fracht [kg/d] ": "Sludge dry matter load",
+                # "Faulbehälter Feststoffbelastung [kg/(m³.d)] ": "Sediment load",
+                "GV Faulschlamm [%] ": "Sludge loss on ignition",
+                # "Faulschlamm oTS-Fracht [kg/d] ": "Sludge organic dry matter load",
+                "Kofermentation Bioabfälle [m³] ": "Cofermentation biowaste",
+                # "Kofermentation CSB-Fracht [kg] ": "Cofermentation COD load",  # pure NaNs
             },
         "biogas":
             {
                 "Datum": "date",
-                "Faulgas1 Menge [Nm³] ": "D1 biogas quantity",
-                "Faulgas2 Menge [Nm³] ": "D2 biogas quantity",
+                "Faulgas1 Menge [Nm³] ": "Biogas D1",
+                "Faulgas2 Menge [Nm³] ": "Biogas D2",
                 # "Faulgas Menge [Nm³] ": "biogas quantity",
                 # "Methan Menge [Nm³] ": "methane quantity",
                 # "Faulgas zur BARA [Nm³] ": "biogas to BARA",
@@ -202,12 +202,12 @@ def enrich(df: "DataFrame") -> "DataFrame":
     Returns an enriched data frame.
     """
     # relative time index and group ids
-    start = df["date"].min()
-    df["time_idx"] = (df["date"] - start).dt.days
+    start = df.date.min()
+    df["time_idx"] = (df.date - start).dt.days
     df["group_ids"] = 0
 
     # additional time features
-    df["month"] = df["date"].dt.month.astype(str).astype("category")
-    df["weekday"] = df["date"].dt.weekday.astype(str).astype("category")
+    df["month"] = df.date.dt.month.astype(str).astype("category")
+    df["weekday"] = df.date.dt.weekday.astype(str).astype("category")
 
     return df
