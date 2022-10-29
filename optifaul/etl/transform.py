@@ -172,8 +172,10 @@ def treat_outliers(df: "DataFrame", method: str, n_quantiles: int = 4) -> "DataF
     iqr = q_high - q_low  # interquartile range
 
     if method == "cap":
-        sdf = sdf.where(cond=sdf > q_low - 1.5 * iqr, other=q_low, axis=0)
-        sdf = sdf.where(cond=sdf < q_high + 1.5 * iqr, other=q_high, axis=0)
+        for col in sdf.columns:
+            sdf[col].where(cond=sdf[col] > q_low[col] - 1.5 * iqr[col], other=q_low[col], inplace=True, axis=0)
+            sdf[col].where(cond=sdf[col] < q_high[col] + 1.5 * iqr[col], other=q_high[col], inplace=True, axis=0)
+
         df.loc[:, sdf.columns] = sdf
     elif method == "remove":
         to_keep = sdf.index[(((sdf > (q_low - 1.5 * iqr)) & (sdf < (q_high + 1.5 * iqr)))).all(axis=1)]
