@@ -30,6 +30,7 @@ class ETL:
         self.df = T.sort_by_date(self.df)
         self.df = T.treat_outliers(self.df, method="cap")
         self.df = T.interpolate_nans(self.df)
+        self.df = T.flatten_digesters(self.df)
         self.df = T.enrich(self.df)
 
     def _load(self) -> None:

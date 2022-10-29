@@ -125,6 +125,17 @@ def merge(dfs: Dict[str, "DataFrame"]) -> "DataFrame":
     return merged
 
 
+def flatten_digesters(df: "DataFrame") -> "DataFrame":
+    """Combine data from both digesters in one column."""
+    df_d1 = df[[col for col in df.columns if "D2" not in col]]
+    df_d1["digester"] = 1
+
+    df_d2 = df[[col for col in df.columns if "D1" not in col]]
+    df_d2["digester"] = 2
+    df_d2.columns = df_d1.columns
+    return pd.concat([df_d1, df_d2], ignore_index=True)
+
+
 def sort_by_date(df: "DataFrame") -> "DataFrame":
     """Sort whole data frame by date.
 
@@ -201,10 +212,9 @@ def enrich(df: "DataFrame") -> "DataFrame":
 
     Returns an enriched data frame.
     """
-    # relative time index and group ids
+    # relative time index
     start = df.date.min()
     df["time_idx"] = (df.date - start).dt.days
-    df["group_ids"] = 0
 
     # additional time features
     df["month"] = df.date.dt.month.astype(str).astype("category")
