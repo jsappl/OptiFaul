@@ -204,6 +204,22 @@ def interpolate_nans(df: "DataFrame") -> "DataFrame":
     return df
 
 
+def smoothen(df: "DataFrame", ndays: int) -> "DataFrame":
+    """Smooth time series data.
+    Args:
+        df: Data frame containing all data.
+        ndays: Size of moving average window.
+
+    Returns a smoothed data frame.
+    """
+    cols = df.columns.tolist()
+    for col in ["date", "public_holiday", "ambient_temp", "overnight_stay"]:
+        cols.remove(col)
+
+    df.loc[ndays:, cols] = df.loc[:, cols].rolling(ndays).mean()[ndays:]
+    return df
+
+
 def enrich(df: "DataFrame") -> "DataFrame":
     """Add additional features for forecasting.
 
