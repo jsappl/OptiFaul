@@ -1,0 +1,13 @@
+_target_: optifaul.studies.hparams_study
+model_path: ${hydra:run.dir}
+max_epochs: 256
+n_trials: 128
+hidden_size_range: [6, 12]
+hidden_continuous_size_range: [6, 12]
+attention_head_size_range: [1, 4]
+dropout_range: [0.0, 0.1]
+use_learning_rate_finder: False
+learning_rate_range: [0.001, 0.1]
+log_dir: ${hydra:run.dir}
+reduce_on_plateau_patience: 16
+output_size: 5

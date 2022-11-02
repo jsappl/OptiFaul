@@ -1,14 +1,15 @@
 """Train and test temporal fusion transformers with anaerobic digester data."""
 
+import readline
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import hydra
+import pytorch_forecasting
 import pytorch_lightning
-import torch
 from hydra.utils import instantiate
 
-from optifaul.test import compute_metrics, goodness_of_fit
+from optifaul.test import compute_metrics, goodness_of_fit, predictions_plot
 from optifaul.utils import namestr_from
 
 if TYPE_CHECKING:
@@ -31,29 +32,48 @@ def main(cfg: "DictConfig") -> None:
 
     loss = instantiate(cfg.loss)
 
-    model = instantiate(
-        cfg.model,
-        dataset=train_data,
-        loss=loss,
-    )
+    if "optuna" in cfg.keys():
+        instantiate(
+            cfg.optuna,
+            train_dataloaders=train_loader,
+            val_dataloaders=val_loader,
+            loss=loss,
+        )
+        return None
 
-    logger = instantiate(cfg.logging, version=namestr_from(model))
+    if cfg.mode == "train":
+        model = instantiate(
+            cfg.model,
+            dataset=train_data,
+            loss=loss,
+        )
 
-    callbacks = []
-    for callback in cfg.callbacks:
-        callbacks.append(instantiate(eval(f"cfg.callbacks.{callback}")))
+        logger = instantiate(cfg.logging, version=namestr_from(model))
 
-    trainer = instantiate(
-        cfg.trainer,
-        logger=logger,
-        callbacks=callbacks,
-    )
-    trainer.fit(model, train_loader, val_loader)
+        callbacks = []
+        for callback in cfg.callbacks:
+            callbacks.append(instantiate(eval(f"cfg.callbacks.{callback}")))
 
-    model.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
-    save_dir = Path("./data/csv/")
-    compute_metrics(model, test_loader, save_dir)
-    goodness_of_fit(model, test_loader, save_dir)
+        trainer = instantiate(
+            cfg.trainer,
+            logger=logger,
+            callbacks=callbacks,
+        )
+        trainer.fit(model, train_loader, val_loader)
+
+        fig = predictions_plot(model, test_loader)
+        trainer.logger.experiment.add_figure("test/predictions", fig)
+
+    if cfg.mode == "test":
+        save_dir = Path("./data/csv/")
+        readline.set_completer_delims(" \t\n=")
+        readline.parse_and_bind("tab: complete")
+        checkpoint_path = input("Choose model checkpoint: ")
+
+        model = eval(cfg.model._target_.rsplit(".", 1)[0]).load_from_checkpoint(checkpoint_path)
+
+        compute_metrics(model, test_loader, save_dir)
+        goodness_of_fit(model, test_loader, save_dir)
 
 
 if __name__ == "__main__":
