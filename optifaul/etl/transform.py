@@ -127,10 +127,10 @@ def merge(dfs: Dict[str, "DataFrame"]) -> "DataFrame":
 
 def flatten_digesters(df: "DataFrame") -> "DataFrame":
     """Combine data from both digesters in one column."""
-    df_d1 = df[[col for col in df.columns if "D2" not in col]]
+    df_d1 = df.loc[:, [col for col in df.columns if "D2" not in col]]
     df_d1["digester"] = 1
 
-    df_d2 = df[[col for col in df.columns if "D1" not in col]]
+    df_d2 = df.loc[:, [col for col in df.columns if "D1" not in col]]
     df_d2["digester"] = 2
     df_d2.columns = df_d1.columns
     return pd.concat([df_d1, df_d2], ignore_index=True)
@@ -197,8 +197,8 @@ def interpolate_nans(df: "DataFrame") -> "DataFrame":
     to_interpolate = [
         col for col in df.columns if col not in ["date", "public_holiday", "ambient_temp", "overnight_stay"]
     ]
-    df.loc[:, to_interpolate] = df.loc[:, to_interpolate].interpolate(
-        method="linear", axis="columns", limit_direction="both")
+    df.loc[:, to_interpolate] = df.loc[:, to_interpolate].interpolate()
+    df.loc[:, to_interpolate] = df.loc[:, to_interpolate].fillna(method="backfill")
 
     df.loc[:, "public_holiday"].fillna("---", inplace=True)
     df.loc[:, "overnight_stay"] = df.overnight_stay.fillna(method="ffill").fillna(method="bfill")
