@@ -1,7 +1,7 @@
 _target_: pytorch_forecasting.models.mlp.DecoderMLP.from_dataset
-hidden_size: 23
-n_hidden_layers: 2
-dropout: 0.0
+hidden_size: 8
+n_hidden_layers: 4
+dropout: 0.1
 norm: False
 output_size: 5
-optimizer: adam
+target: Biogas D1
