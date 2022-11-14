@@ -85,7 +85,13 @@ def predictions_plot(model: "Module", loader: "DataLoader") -> "Figure":
 
 
 def variable_ranking(model: "Module", loader: "DataLoader", save_dir: "Path") -> None:
-    """Rank input variables of TFT by importance."""
+    """Rank input variables of TFT by importance.
+
+    Args:
+        model: The model to be evaluated.
+        loader: Provides an iterator over the data set.
+        save_dir: Where to save the metric results.
+    """
     file = open(save_dir / "importance.csv", "w")
     file.write("variable,importance\n")
 
@@ -95,5 +101,58 @@ def variable_ranking(model: "Module", loader: "DataLoader", save_dir: "Path") ->
 
     for variable, value in zip(model.encoder_variables, interpretation["encoder_variables"]):
         file.write(f"{variable},{value.item() / total * 100}\n")
+
+    file.close()
+
+
+def partial_dependencies(model: "Module", loader: "DataLoader", save_dir: "Path") -> None:
+    """Analyze the TFT with partial dependency plots.
+
+    Args:
+        model: The model to be evaluated.
+        loader: Provides an iterator over the data set.
+        save_dir: Where to save the metric results.
+    """
+    data = loader.dataset
+    variables = data.time_varying_unknown_reals
+    variables.remove("Biogas D1")
+
+    for variable, mean, std in zip(
+        [
+            "Raw sludge dry matter load",
+            "Sludge loss on ignition",
+            "Hydraulic retention time",
+            "Raw sludge dry matter",
+            "Temperature D1",
+            "Sludge dry matter load",
+            "pH value D1",
+        ],
+        [
+            10375.16,
+            59.65,
+            28.08,
+            55.17,
+            38.47,
+            5355.92,
+            7.53,
+        ],
+        [
+            2843.56,
+            2.49,
+            6.36,
+            8.97,
+            0.61,
+            1531.13,
+            0.41,
+        ],
+    ):
+        file = open(save_dir / f"dependency_{variable.replace(' ', '_')}.csv", "w")
+        file.write(f"{variable},mean,std\n")
+
+        for value in np.linspace(mean - 1.5 * std, mean + 1.5 * std, 16):
+            data.set_overwrite_values(variable=variable, values=value, target="all")
+            output = model.predict(data)
+            file.write(f"{value},{output.mean().item()},{output.std().item()}\n")
+            data.reset_overwrite_values()
 
     file.close()
