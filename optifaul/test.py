@@ -156,3 +156,24 @@ def partial_dependencies(model: "Module", loader: "DataLoader", save_dir: "Path"
             data.reset_overwrite_values()
 
     file.close()
+
+
+def single_day_forecast(model: "Module", loader: "DataLoader", save_dir: "Path") -> None:
+    """Retrieve only one day forecast for plotting.
+
+    Args:
+        model: The model to be evaluated.
+        loader: Provides an iterator over the data set.
+        save_dir: Where to save the metric results.
+    """
+    targets = torch.cat([y[0] for _, y in iter(loader)]).numpy()[:, 1]
+    predictions = model.predict(loader).numpy()[:, 1]
+
+    np.savetxt(
+        save_dir / f"single_day_{namestr_from(model)}.csv",
+        np.stack((targets, predictions), axis=1),
+        fmt="%f",
+        delimiter=",",
+        header="target,prediction",
+        comments="",
+    )
