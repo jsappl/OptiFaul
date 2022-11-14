@@ -64,3 +64,21 @@ def goodness_of_fit(model: "Module", loader: "DataLoader", save_dir: "Path") -> 
     )
 
 
+def predictions_plot(model: "Module", loader: "DataLoader") -> "Figure":
+    """Plot targets versus predictions of a trained model.
+
+    Args:
+        model: The model to be evaluated.
+        loader: Provides an iterator over the data set.
+
+    Returns:
+        A target vs. predictions plot.
+    """
+    targets = torch.cat([y[0][:, 1] for _, y in iter(loader)]).flatten().numpy()
+    predictions = model.predict(loader)[:, 1].flatten().numpy()
+    fig = plt.figure()
+
+    plt.plot(targets, label="targets")
+    plt.plot(predictions, label="predictions")
+
+    return fig
