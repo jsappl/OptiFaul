@@ -61,7 +61,7 @@ def main(cfg: "DictConfig") -> None:
         )
         trainer.fit(model, train_loader, val_loader)
 
-        fig = predictions_plot(model, test_loader)
+        fig = test.predictions_plot(model, test_loader)
         trainer.logger.experiment.add_figure("test/predictions", fig)
 
     if cfg.mode == "test":
