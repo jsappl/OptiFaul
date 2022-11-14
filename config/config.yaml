@@ -13,12 +13,13 @@ defaults:
 
 seed: 69
 run_etl: False
+mode: train # or test
 hydra:
   run:
     dir: ./data/runs/${now:%Y-%m-%d}/${now:%H-%M}
   sweep:
     dir: ./data/runs/${now:%Y-%m-%d}/
     subdir: ${now:%H-%M}
-batch_size: 32
-num_workers: 20
-epochs: 128
+batch_size: 128
+num_workers: 8
+epochs: 20000
