@@ -82,3 +82,18 @@ def predictions_plot(model: "Module", loader: "DataLoader") -> "Figure":
     plt.plot(predictions, label="predictions")
 
     return fig
+
+
+def variable_ranking(model: "Module", loader: "DataLoader", save_dir: "Path") -> None:
+    """Rank input variables of TFT by importance."""
+    file = open(save_dir / "importance.csv", "w")
+    file.write("variable,importance\n")
+
+    raw_predictions, _ = model.predict(loader, mode="raw", return_x=True)
+    interpretation = model.interpret_output(raw_predictions, reduction="sum")
+    total = torch.sum(interpretation["encoder_variables"]).item()
+
+    for variable, value in zip(model.encoder_variables, interpretation["encoder_variables"]):
+        file.write(f"{variable},{value.item() / total * 100}\n")
+
+    file.close()
