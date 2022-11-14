@@ -2,7 +2,9 @@
 
 from typing import TYPE_CHECKING
 
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import pytorch_forecasting
 import torch
 
@@ -11,6 +13,7 @@ from optifaul.utils import namestr_from, r_squared
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from matplotlib.pyplot import Figure
     from torch.nn import Module
     from torch.utils.data import DataLoader
 
@@ -29,12 +32,13 @@ def compute_metrics(model: "Module", loader: "DataLoader", save_dir: "Path") -> 
     file = open(save_dir / "metrics.csv", "a")
     file.write(f"{namestr_from(model)}")
 
-    for name in ["MAE", "MAPE", "RMSE", "SMAPE"]:
+    for name in ["MAE", "MAPE", "SMAPE"]:
         metric = eval(f"pytorch_forecasting.metrics.point.{name}(reduction='none')")
         loss = metric(predictions, targets)
         file.write(f",{round(loss.mean().item(), 2)},{round(loss.std().item(), 2)}")
+    metric = eval("pytorch_forecasting.metrics.point.RMSE()")
+    file.write(f",{round(metric(predictions, targets).item(), 2)}\n")
 
-    file.write("\n")
     file.close()
 
 
