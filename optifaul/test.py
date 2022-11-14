@@ -177,3 +177,16 @@ def single_day_forecast(model: "Module", loader: "DataLoader", save_dir: "Path")
         header="target,prediction",
         comments="",
     )
+
+
+def quantiles_single(model: "Module", loader: "DataLoader", save_dir: "Path") -> None:
+    """Compute quantiles for a single day forecast.
+
+    Args:
+        model: The model to be evaluated.
+        loader: Provides an iterator over the data set.
+        save_dir: Where to save the metric results.
+    """
+    quantiles = model.predict(loader, mode="quantiles")
+    df = pd.DataFrame(data=quantiles[:, 0, :].numpy(), columns=["q25", "q40", "q50", "q60", "q75"])
+    df.to_csv(save_dir / "quantiles_single.csv", index=False)
