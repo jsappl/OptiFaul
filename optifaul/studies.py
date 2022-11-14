@@ -1,4 +1,4 @@
-"""Hyperparameter studies and model sensitivity analysis."""
+"""Various studies for, e.g., hyperparameters."""
 
 from typing import TYPE_CHECKING, List
 
@@ -30,7 +30,7 @@ def hparams_study(
         learning_rate_range=tuple(learning_rate_range),
         trainer_kwargs={"log_every_n_steps": 1},
         log_dir=log_dir,
-        reduce_on_plateau_patience=16,
-        output_size=5,
+        reduce_on_plateau_patience=reduce_on_plateau_patience,
+        output_size=output_size,
         loss=loss,
     )
