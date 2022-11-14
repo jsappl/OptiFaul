@@ -9,7 +9,7 @@ import pytorch_forecasting
 import pytorch_lightning
 from hydra.utils import instantiate
 
-from optifaul.test import compute_metrics, goodness_of_fit, predictions_plot
+import optifaul.test as test
 from optifaul.utils import namestr_from
 
 if TYPE_CHECKING:
@@ -72,8 +72,12 @@ def main(cfg: "DictConfig") -> None:
 
         model = eval(cfg.model._target_.rsplit(".", 1)[0]).load_from_checkpoint(checkpoint_path)
 
-        compute_metrics(model, test_loader, save_dir)
-        goodness_of_fit(model, test_loader, save_dir)
+        test.partial_dependencies(model, test_loader, save_dir)
+        test.compute_metrics(model, test_loader, save_dir)
+        test.goodness_of_fit(model, test_loader, save_dir)
+        test.variable_ranking(model, test_loader, save_dir)
+        test.single_day_forecast(model, test_loader, save_dir)
+        test.quantiles_single(model, test_loader, save_dir)
 
 
 if __name__ == "__main__":
